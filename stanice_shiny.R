@@ -12,7 +12,9 @@ library(raster)
 library(ggsn)
 library(proj4)
 library(sf)
+library(randomcoloR)
 library(leaflet)
+
 
 sites_subjects <- read.csv("https://raw.githubusercontent.com/jonasgaigr/N2K.CZ/main/sites_subjects_utf.csv", encoding = "UTF-8")
 sites_subjects$SUBJECT <- gsub("Maculinea", "Phengaris", sites_subjects$SUBJECT)
@@ -25,8 +27,9 @@ sites_subjects$SUBJECT <- gsub("Cobitis elongatoides", "Cobitis taneia", sites_s
 sites_subjects$SUBJECT <- gsub("Rhodeus sericeus amarus", "Rhodeus amarus", sites_subjects$SUBJECT)
 
 evl_sf <- st_read("Evropsky_v%C3%BDznamn%C3%A9_lokality.shp")
+evl_sf <- st_transform(evl_sf, CRS("+init=epsg:4326"))
 
-stanice <- read.table("https://raw.githubusercontent.com/manmatej/chmu-process/master/stanice_ids.csv",sep = ";",stringsAsFactors = F,header = T, encoding = "UTF-8") 
+stanice <- read.csv("https://raw.githubusercontent.com/jonasgaigr/N2K.EFFECTS/master/stanice_ids.csv", encoding = "UTF-8") 
 stanice_mapa <- st_as_sf(x= stanice, coords = c("X", "Y"), crs = "+init=epsg:4326")
 
 taxa = read.table(
@@ -124,9 +127,9 @@ ui <- fluidPage(
   tags$head(tags$link(rel = "shortcut icon", 
                       href = "https://raw.githubusercontent.com/jonasgaigr/N2K.CZ/main/WWW/favicon.ico")),
   
-  titlePanel(div(HTML("<h1>Mapa stanic")
+  titlePanel(div(HTML("<h1>Vyhledávač stanic ČHMÚ pro EVL")
   ),
-  windowTitle = "Hodnocení stavu evropsky významných druhů"),
+  windowTitle = "Vyhledávač stanic ČHMÚ pro EVL"),
   
   br(),
   
@@ -136,6 +139,9 @@ ui <- fluidPage(
          htmlOutput("species_selector")),
   column(2,
          htmlOutput("evl_selector")),
+  column(3,
+         sliderInput("evl_dist", "Vzdálenost od hranic EVL",
+                       min = 0.01, max = 0.3, value = 0, step = 0.005, ticks = FALSE)),
   
   br(),
   br(),
@@ -151,7 +157,19 @@ ui <- fluidPage(
   fluidRow(
            leafletOutput(outputId = "evl_chmi_mapa", height = "700px") %>%
              withSpinner(color = "green")
-  )
+  ),
+  
+  hr(),
+  
+  fluidRow(div(img(
+    src = "https://raw.githubusercontent.com/jonasgaigr/N2K.CZ/main/WWW/LOGO.jpg", 
+    height = 70), style = "text-align: center;")),
+  
+  br(),
+
+  fluidRow(HTML('<center><b>© 2020 <a href="http://www.nature.cz" target="_blank">AOPK ČR</a></b></center>')),
+ 
+  br()
 )
 
 server <- function(input, output, session){
@@ -168,7 +186,7 @@ server <- function(input, output, session){
   
   find_STANICE_CHMU <- function(evl_nazev) {
     
-    target_evl_stanice <- st_buffer(subset(evl_sf, evl_sf$NAZEV == evl_nazev), dist = 0)
+    target_evl_stanice <- st_buffer(subset(evl_sf, evl_sf$NAZEV == evl_nazev), dist = input$evl_dist)
     
     if (sum(st_intersects(stanice_mapa, target_evl_stanice, sparse = FALSE)) == 0){
       
@@ -179,6 +197,7 @@ server <- function(input, output, session){
       st_intersection(stanice_mapa, target_evl_stanice)
       
     }
+    
   }
   
   
@@ -191,7 +210,7 @@ server <- function(input, output, session){
     
     target_evl <- evl_sf[evl_sf$NAZEV %in% input$evl_site,]
     
-    distCol<- colorFactor(distinctColorPalette(17), stanice_mapa$STATION_TYP)
+    distCol<- colorFactor(topo.colors(2), stanice_mapa$T)
     
     leaflet() %>%
       addProviderTiles(providers$Esri.WorldTopo) %>%
@@ -202,13 +221,13 @@ server <- function(input, output, session){
                   opacity = .8,
                   label = ~NAZEV) %>%
       addCircleMarkers(data = result,
-                       color = "blue",
-                       fill = "blue",
-                       weight = .5,
+                       color = ~distCol(T),
+                       fill = ~distCol(T),
+                       weight = 1.5,
                        opacity = .95,
                        radius = 6,
                        label = ~FNAME) %>%
-      addLegend(data = result, pal = distCol, values = ~STATION_TYP)
+      addLegend(data = result, pal = distCol, values = ~T, title = "Měření teploty")
     })
   
   # Výběr taxonu ----
@@ -247,7 +266,7 @@ server <- function(input, output, session){
     if (input$evl_site == "") {
       
       div(img(src = "https://raw.githubusercontent.com/jonasgaigr/N2K.CZ/main/WWW/logo.png",
-              width = "30%"), style = "text-align: center;")
+              width = "50%"), style = "text-align: center;")
       
     } else {
       NULL
