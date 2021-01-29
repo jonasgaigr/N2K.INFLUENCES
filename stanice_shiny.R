@@ -12,10 +12,9 @@ library(raster)
 library(ggsn)
 library(proj4)
 library(sf)
-library(randomcoloR)
 library(leaflet)
 
-
+# Load files ----
 sites_subjects <- read.csv("https://raw.githubusercontent.com/jonasgaigr/N2K.CZ/main/sites_subjects_utf.csv", encoding = "UTF-8")
 sites_subjects$SUBJECT <- gsub("Maculinea", "Phengaris", sites_subjects$SUBJECT)
 sites_subjects$SUBJECT <- gsub("Thersamonolycaena", "Lycaena", sites_subjects$SUBJECT)
@@ -27,7 +26,7 @@ sites_subjects$SUBJECT <- gsub("Cobitis elongatoides", "Cobitis taneia", sites_s
 sites_subjects$SUBJECT <- gsub("Rhodeus sericeus amarus", "Rhodeus amarus", sites_subjects$SUBJECT)
 
 evl_sf <- st_read("Evropsky_v%C3%BDznamn%C3%A9_lokality.shp")
-evl_sf <- st_transform(evl_sf, CRS("+init=epsg:4326"))
+evl_sf <- st_transform(evl_sf, CRS("+init=epsg:4326 +units=m"))
 
 stanice <- read.csv("https://raw.githubusercontent.com/jonasgaigr/N2K.EFFECTS/master/stanice_ids.csv", encoding = "UTF-8") 
 stanice_mapa <- st_as_sf(x= stanice, coords = c("X", "Y"), crs = "+init=epsg:4326")
