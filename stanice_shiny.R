@@ -80,7 +80,7 @@ Plži	'Vertigo geyeri' 'vrkoč Geyerův'
 Plži	'Vertigo moulinsiana' 'vrkoč bažinný'
 Štírci	'Anthrenochernes stellae' 'štírek Stella'
 Ryby	'Leuciscus aspius' 'bolen dravý'
-Ryby	'Cobitis taneia' 'sekavec písečný'
+Ryby	'Cobitis taenia' 'sekavec písečný'
 Ryby	'Cottus gobio' 'vranka obecná'
 Ryby	'Gobio albipinnatus' 'hrouzek běloploutvý'
 Ryby	'Gobio kessleri' 'hrouzek Kesslerův'
@@ -140,7 +140,7 @@ ui <- fluidPage(
          htmlOutput("evl_selector")),
   column(3,
          sliderInput("evl_dist", "Vzdálenost od hranic EVL",
-                       min = 0.01, max = 0.3, value = 0, step = 0.005, ticks = FALSE)),
+                     min = 0.01, max = 0.3, value = 0, step = 0.005, ticks = FALSE)),
   
   br(),
   br(),
@@ -154,8 +154,8 @@ ui <- fluidPage(
   ),
   
   fluidRow(
-           leafletOutput(outputId = "evl_chmi_mapa", height = "700px") %>%
-             withSpinner(color = "green")
+    leafletOutput(outputId = "evl_chmi_mapa", height = "700px") %>%
+      withSpinner(color = "green")
   ),
   
   hr(),
@@ -165,9 +165,9 @@ ui <- fluidPage(
     height = 70), style = "text-align: center;")),
   
   br(),
-
+  
   fluidRow(HTML('<center><b>© 2020 <a href="http://www.nature.cz" target="_blank">AOPK ČR</a></b></center>')),
- 
+  
   br()
 )
 
@@ -227,7 +227,7 @@ server <- function(input, output, session){
                        radius = 6,
                        label = ~FNAME) %>%
       addLegend(data = result, pal = distCol, values = ~T, title = "Měření teploty")
-    })
+  })
   
   # Výběr taxonu ----
   
